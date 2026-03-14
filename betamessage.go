@@ -160,6 +160,253 @@ const (
 	BetaBase64ImageSourceMediaTypeImageWebP BetaBase64ImageSourceMediaType = "image/webp"
 )
 
+// The properties Source, Type are required.
+type BetaBase64PDFBlockParam struct {
+	Source  BetaBase64PDFBlockSourceUnionParam `json:"source,omitzero,required"`
+	Context param.Opt[string]                  `json:"context,omitzero"`
+	Title   param.Opt[string]                  `json:"title,omitzero"`
+	// Create a cache control breakpoint at this content block.
+	CacheControl BetaCacheControlEphemeralParam `json:"cache_control,omitzero"`
+	Citations    BetaCitationsConfigParam       `json:"citations,omitzero"`
+	// This field can be elided, and will marshal its zero value as "document".
+	Type constant.Document `json:"type,required"`
+	paramObj
+}
+
+func (r BetaBase64PDFBlockParam) MarshalJSON() (data []byte, err error) {
+	type shadow BetaBase64PDFBlockParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaBase64PDFBlockParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type BetaBase64PDFBlockSourceUnionParam struct {
+	OfBase64  *BetaBase64PDFSourceParam    `json:",omitzero,inline"`
+	OfText    *BetaPlainTextSourceParam    `json:",omitzero,inline"`
+	OfContent *BetaContentBlockSourceParam `json:",omitzero,inline"`
+	OfURL     *BetaURLPDFSourceParam       `json:",omitzero,inline"`
+	OfFile    *BetaFileDocumentSourceParam `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u BetaBase64PDFBlockSourceUnionParam) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfBase64,
+		u.OfText,
+		u.OfContent,
+		u.OfURL,
+		u.OfFile)
+}
+func (u *BetaBase64PDFBlockSourceUnionParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *BetaBase64PDFBlockSourceUnionParam) asAny() any {
+	if !param.IsOmitted(u.OfBase64) {
+		return u.OfBase64
+	} else if !param.IsOmitted(u.OfText) {
+		return u.OfText
+	} else if !param.IsOmitted(u.OfContent) {
+		return u.OfContent
+	} else if !param.IsOmitted(u.OfURL) {
+		return u.OfURL
+	} else if !param.IsOmitted(u.OfFile) {
+		return u.OfFile
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaBase64PDFBlockSourceUnionParam) GetContent() *BetaContentBlockSourceContentUnionParam {
+	if vt := u.OfContent; vt != nil {
+		return &vt.Content
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaBase64PDFBlockSourceUnionParam) GetURL() *string {
+	if vt := u.OfURL; vt != nil {
+		return &vt.URL
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaBase64PDFBlockSourceUnionParam) GetFileID() *string {
+	if vt := u.OfFile; vt != nil {
+		return &vt.FileID
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaBase64PDFBlockSourceUnionParam) GetData() *string {
+	if vt := u.OfBase64; vt != nil {
+		return (*string)(&vt.Data)
+	} else if vt := u.OfText; vt != nil {
+		return (*string)(&vt.Data)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaBase64PDFBlockSourceUnionParam) GetMediaType() *string {
+	if vt := u.OfBase64; vt != nil {
+		return (*string)(&vt.MediaType)
+	} else if vt := u.OfText; vt != nil {
+		return (*string)(&vt.MediaType)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaBase64PDFBlockSourceUnionParam) GetType() *string {
+	if vt := u.OfBase64; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfText; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfContent; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfURL; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfFile; vt != nil {
+		return (*string)(&vt.Type)
+	}
+	return nil
+}
+
+func init() {
+	apijson.RegisterUnion[BetaBase64PDFBlockSourceUnionParam](
+		"type",
+		apijson.Discriminator[BetaBase64PDFSourceParam]("base64"),
+		apijson.Discriminator[BetaPlainTextSourceParam]("text"),
+		apijson.Discriminator[BetaContentBlockSourceParam]("content"),
+		apijson.Discriminator[BetaURLPDFSourceParam]("url"),
+		apijson.Discriminator[BetaFileDocumentSourceParam]("file"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaImageBlockParamSourceUnion](
+		"type",
+		apijson.Discriminator[BetaBase64ImageSourceParam]("base64"),
+		apijson.Discriminator[BetaURLImageSourceParam]("url"),
+		apijson.Discriminator[BetaFileImageSourceParam]("file"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaRequestDocumentBlockSourceUnionParam](
+		"type",
+		apijson.Discriminator[BetaBase64PDFSourceParam]("base64"),
+		apijson.Discriminator[BetaPlainTextSourceParam]("text"),
+		apijson.Discriminator[BetaContentBlockSourceParam]("content"),
+		apijson.Discriminator[BetaURLPDFSourceParam]("url"),
+		apijson.Discriminator[BetaFileDocumentSourceParam]("file"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaTextCitationParamUnion](
+		"type",
+		apijson.Discriminator[BetaCitationCharLocationParam]("char_location"),
+		apijson.Discriminator[BetaCitationPageLocationParam]("page_location"),
+		apijson.Discriminator[BetaCitationContentBlockLocationParam]("content_block_location"),
+		apijson.Discriminator[BetaCitationWebSearchResultLocationParam]("web_search_result_location"),
+		apijson.Discriminator[BetaCitationSearchResultLocationParam]("search_result_location"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaThinkingConfigParamUnion](
+		"type",
+		apijson.Discriminator[BetaThinkingConfigEnabledParam]("enabled"),
+		apijson.Discriminator[BetaThinkingConfigDisabledParam]("disabled"),
+		apijson.Discriminator[BetaThinkingConfigAdaptiveParam]("adaptive"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaToolChoiceUnionParam](
+		"type",
+		apijson.Discriminator[BetaToolChoiceAutoParam]("auto"),
+		apijson.Discriminator[BetaToolChoiceAnyParam]("any"),
+		apijson.Discriminator[BetaToolChoiceToolParam]("tool"),
+		apijson.Discriminator[BetaToolChoiceNoneParam]("none"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaClearToolUses20250919EditTriggerUnionParam](
+		"type",
+		apijson.Discriminator[BetaInputTokensTriggerParam]("input_tokens"),
+		apijson.Discriminator[BetaToolUsesTriggerParam]("tool_uses"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaContentBlockParamUnion](
+		"type",
+		apijson.Discriminator[BetaTextBlockParam]("text"),
+		apijson.Discriminator[BetaImageBlockParam]("image"),
+		apijson.Discriminator[BetaRequestDocumentBlockParam]("document"),
+		apijson.Discriminator[BetaSearchResultBlockParam]("search_result"),
+		apijson.Discriminator[BetaThinkingBlockParam]("thinking"),
+		apijson.Discriminator[BetaRedactedThinkingBlockParam]("redacted_thinking"),
+		apijson.Discriminator[BetaToolUseBlockParam]("tool_use"),
+		apijson.Discriminator[BetaToolResultBlockParam]("tool_result"),
+		apijson.Discriminator[BetaServerToolUseBlockParam]("server_tool_use"),
+		apijson.Discriminator[BetaWebSearchToolResultBlockParam]("web_search_tool_result"),
+		apijson.Discriminator[BetaWebFetchToolResultBlockParam]("web_fetch_tool_result"),
+		apijson.Discriminator[BetaCodeExecutionToolResultBlockParam]("code_execution_tool_result"),
+		apijson.Discriminator[BetaBashCodeExecutionToolResultBlockParam]("bash_code_execution_tool_result"),
+		apijson.Discriminator[BetaTextEditorCodeExecutionToolResultBlockParam]("text_editor_code_execution_tool_result"),
+		apijson.Discriminator[BetaToolSearchToolResultBlockParam]("tool_search_tool_result"),
+		apijson.Discriminator[BetaMCPToolUseBlockParam]("mcp_tool_use"),
+		apijson.Discriminator[BetaRequestMCPToolResultBlockParam]("mcp_tool_result"),
+		apijson.Discriminator[BetaContainerUploadBlockParam]("container_upload"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaContextManagementConfigEditUnionParam](
+		"type",
+		apijson.Discriminator[BetaClearToolUses20250919EditParam]("clear_tool_uses_20250919"),
+		apijson.Discriminator[BetaClearThinking20251015EditParam]("clear_thinking_20251015"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaServerToolUseBlockParamCallerUnion](
+		"type",
+		apijson.Discriminator[BetaDirectCallerParam]("direct"),
+		apijson.Discriminator[BetaServerToolCallerParam]("code_execution_20250825"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaToolResultBlockParamContentUnion](
+		"type",
+		apijson.Discriminator[BetaTextBlockParam]("text"),
+		apijson.Discriminator[BetaImageBlockParam]("image"),
+		apijson.Discriminator[BetaSearchResultBlockParam]("search_result"),
+		apijson.Discriminator[BetaRequestDocumentBlockParam]("document"),
+		apijson.Discriminator[BetaToolReferenceBlockParam]("tool_reference"),
+	)
+}
+
+func init() {
+	apijson.RegisterUnion[BetaToolUseBlockParamCallerUnion](
+		"type",
+		apijson.Discriminator[BetaDirectCallerParam]("direct"),
+		apijson.Discriminator[BetaServerToolCallerParam]("code_execution_20250825"),
+	)
+}
+
 type BetaBase64PDFSource struct {
 	Data      string                  `json:"data" api:"required" format:"byte"`
 	MediaType constant.ApplicationPDF `json:"media_type" api:"required"`
