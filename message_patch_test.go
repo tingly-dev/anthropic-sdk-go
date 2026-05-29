@@ -5,21 +5,9 @@ import (
 	"testing"
 )
 
-func TestBetaToolResultBlockParamStringContent(t *testing.T) {
-	toolResultJSON := `{"type":"tool_result","content":"error message","tool_use_id":"123"}`
-	var toolResult BetaToolResultBlockParam
-	err := json.Unmarshal([]byte(toolResultJSON), &toolResult)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(toolResult.Content) != 1 || toolResult.Content[0].OfText.Text != "error message" {
-		t.Error("String content not converted to TextBlock")
-	}
-}
-
-func TestBetaAccumulatePatch(t *testing.T) {
+func TestAccumulatePatch(t *testing.T) {
 	for name, testCase := range map[string]struct {
-		expected BetaMessage
+		expected Message
 		events   []string
 	}{
 		"interleaved content blocks (thinking start mid-text)": {
@@ -38,7 +26,7 @@ func TestBetaAccumulatePatch(t *testing.T) {
 				`{"type": "content_block_stop", "index": 2}`,
 				`{"type": "message_stop"}`,
 			},
-			expected: BetaMessage{Content: []BetaContentBlockUnion{
+			expected: Message{Content: []ContentBlockUnion{
 				{Type: "thinking", Thinking: "Let me think.", Signature: "sig123"},
 				{Type: "text", Text: "Hello world!"},
 				{Type: "thinking"},
@@ -46,9 +34,9 @@ func TestBetaAccumulatePatch(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			message := BetaMessage{}
+			message := Message{}
 			for _, eventStr := range testCase.events {
-				event := BetaRawMessageStreamEventUnion{}
+				event := MessageStreamEventUnion{}
 				err := (&event).UnmarshalJSON([]byte(eventStr))
 				if err != nil {
 					t.Fatal(err)

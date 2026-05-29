@@ -38,10 +38,10 @@ func (acc *BetaMessage) Accumulate(event BetaRawMessageStreamEventUnion) error {
 			return err
 		}
 	case BetaRawContentBlockDeltaEvent:
-		if len(acc.Content) == 0 {
-			return fmt.Errorf("received event of type %s but there was no content block", event.Type)
+		if int(event.Index) >= len(acc.Content) {
+			return fmt.Errorf("received delta for block index %d but only %d blocks exist", event.Index, len(acc.Content))
 		}
-		cb := &acc.Content[len(acc.Content)-1]
+		cb := &acc.Content[event.Index]
 		switch delta := event.Delta.AsAny().(type) {
 		case BetaTextDelta:
 			cb.Text += delta.Text
@@ -78,10 +78,10 @@ func (acc *BetaMessage) Accumulate(event BetaRawMessageStreamEventUnion) error {
 	case BetaRawContentBlockStopEvent:
 		// Re-marshal the content block to update JSON.raw so that AsAny()
 		// returns the accumulated data rather than the original stream data
-		if len(acc.Content) == 0 {
-			return fmt.Errorf("received event of type %s but there was no content block", event.Type)
+		if int(event.Index) >= len(acc.Content) {
+			return fmt.Errorf("received stop for block index %d but only %d blocks exist", event.Index, len(acc.Content))
 		}
-		contentBlock := &acc.Content[len(acc.Content)-1]
+		contentBlock := &acc.Content[event.Index]
 		cbJSON, err := json.Marshal(contentBlock)
 		if err != nil {
 			return fmt.Errorf("error converting content block to JSON: %w", err)

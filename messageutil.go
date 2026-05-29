@@ -36,10 +36,10 @@ func (acc *Message) Accumulate(event MessageStreamEventUnion) error {
 			return err
 		}
 	case ContentBlockDeltaEvent:
-		if len(acc.Content) == 0 {
-			return fmt.Errorf("received event of type %s but there was no content block", event.Type)
+		if int(event.Index) >= len(acc.Content) {
+			return fmt.Errorf("received delta for block index %d but only %d blocks exist", event.Index, len(acc.Content))
 		}
-		cb := &acc.Content[len(acc.Content)-1]
+		cb := &acc.Content[event.Index]
 		switch delta := event.Delta.AsAny().(type) {
 		case TextDelta:
 			cb.Text += delta.Text
