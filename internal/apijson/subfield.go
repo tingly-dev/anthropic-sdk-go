@@ -1,6 +1,8 @@
 package apijson
 
 import (
+	"encoding/json"
+
 	"github.com/anthropics/anthropic-sdk-go/v2/packages/respjson"
 	"reflect"
 )
@@ -35,6 +37,12 @@ func setMetadataSubField(root reflect.Value, index []int, name string, meta Fiel
 }
 
 func setMetadataExtraFields(root reflect.Value, index []int, name string, metaExtras map[string]Field) {
+	// Param structs (embedders of packages/param.APIObject) have no "JSON"
+	// metadata struct; getSubField finds nothing for them. Instead, preserve
+	// unknown keys in the param metadata extras so they survive a
+	// decode -> re-encode round trip, matching the v1 SDK behavior.
+	setParamMetadataExtraFields(root, metaExtras)
+
 	target := getSubField(root, index, name)
 	if !target.IsValid() {
 		return
@@ -52,6 +60,31 @@ func setMetadataExtraFields(root reflect.Value, index []int, name string, metaEx
 		}
 		target.Set(reflect.ValueOf(newMap))
 	}
+}
+
+// setParamMetadataExtraFields stores unknown keys into a param struct's
+// embedded metadata (via the promoted SetExtraFields method) so they are
+// re-emitted by param.MarshalObject. Structs without param metadata are
+// unaffected.
+func setParamMetadataExtraFields(root reflect.Value, metaExtras map[string]Field) {
+	if len(metaExtras) == 0 || !root.CanAddr() || !root.CanInterface() {
+		return
+	}
+	setter, ok := root.Addr().Interface().(interface{ SetExtraFields(map[string]any) })
+	if !ok {
+		return
+	}
+	extras := make(map[string]any, len(metaExtras))
+	for k, f := range metaExtras {
+		var v any
+		if err := json.Unmarshal(json.RawMessage(f.raw), &v); err != nil {
+			// Keep the raw payload if it is not valid JSON (e.g. an
+			// invalid field) so nothing is silently dropped.
+			v = json.RawMessage(f.raw)
+		}
+		extras[k] = v
+	}
+	setter.SetExtraFields(extras)
 }
 
 func (f Field) toRespField() respjson.Field {

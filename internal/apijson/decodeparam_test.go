@@ -3,10 +3,11 @@ package apijson_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/anthropics/anthropic-sdk-go/v2/internal/apijson"
-	"github.com/anthropics/anthropic-sdk-go/v2/packages/param"
 	"reflect"
 	"testing"
+
+	"github.com/anthropics/anthropic-sdk-go/v2/internal/apijson"
+	"github.com/anthropics/anthropic-sdk-go/v2/packages/param"
 )
 
 func TestOptionalDecoders(t *testing.T) {
